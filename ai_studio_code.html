@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Damn Bruh — Slither Arena</title>
+    <meta name="description" content="Fast-paced Slither.io arena webgame with EGP stake rooms, fragment bounties, xPay preview wallet, and photo-forged serpent skins." />
+    <meta property="og:title" content="Damn Bruh — Slither Arena" />
+    <meta property="og:description" content="Fast-paced Slither.io arena webgame with EGP stake rooms, fragment bounties, xPay preview wallet, and photo-forged serpent skins." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="./script.js"></script>
+  </head>
+  <body data-state="title">
+    <div id="app">
+      <canvas
+        id="arena-canvas"
+        tabindex="0"
+        data-testid="arena-canvas"
+        aria-label="Damn Bruh Slither Arena Canvas"
+      ></canvas>
+
+      <!-- Title / Lobby Overlay -->
+      <div id="title-overlay" class="overlay title-overlay">
+        <header class="title-header">
+          <div class="title-lockup">
+            <svg viewBox="0 0 64 64" class="title-logo" aria-hidden="true">
+              <path
+                d="M12 48 C 12 28, 30 34, 32 22 C 34 10, 50 14, 52 24"
+                fill="none"
+                stroke="#070A10"
+                stroke-width="16"
+                stroke-linecap="round"
+              />
+              <path
+                d="M12 48 C 12 28, 30 34, 32 22 C 34 10, 50 14, 52 24"
+                fill="none"
+                stroke="#A3E635"
+                stroke-width="11"
+                stroke-linecap="round"
+              />
+              <circle cx="52" cy="24" r="8" fill="#A3E635" stroke="#070A10" stroke-width="2.5" />
+              <circle cx="54" cy="21" r="2.2" fill="#FFFFFF" />
+              <circle cx="54.7" cy="21" r="1.1" fill="#0B0F17" />
+              <path d="M59 25 L64 23 M59 26 L64 28" stroke="#F43F5E" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <h1 class="title-wordmark hud-text-stroke">DAMN BRUH</h1>
+          </div>
+          <p class="title-subtitle">
+            Cut off rivals, devour their fragments, and rule the arena · Personal Best:
+            <span id="best-length-display" class="mono accent-lime">300</span>
+          </p>
+        </header>
+
+        <main class="lobby-grid">
+          <!-- Left Card: xPay Wallet, Callsign, Rooms, Skins -->
+          <section class="card card-main" aria-label="Arena setup">
+            <div class="card-body">
+              <div class="wallet-strip">
+                <div>
+                  <div class="wallet-brand-row">
+                    <span class="xpay-brand">xPay</span>
+                    <span class="muted-xs">Preview Wallet</span>
+                  </div>
+                  <div id="wallet-balance" data-testid="wallet-balance" class="wallet-amount mono">
+                    100 EGP
+                  </div>
+                </div>
+                <div class="wallet-actions">
+                  <button id="btn-open-cashin" type="button" class="btn-outline-cyan">
+                    ↓ Cash In
+                  </button>
+                  <button id="btn-open-cashout" type="button" class="btn-outline-slate">
+                    ↑ Cash Out
+                  </button>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="player-name-input" class="field-label">Arena Callsign</label>
+                <input
+                  id="player-name-input"
+                  type="text"
+                  maxlength="16"
+                  value="Bruhv"
+                  placeholder="Enter your name"
+                  class="text-input"
+                />
+              </div>
+
+              <div class="field-group">
+                <div class="field-header-row">
+                  <span class="field-label">Select Stake Room</span>
+                  <span class="muted-xs">Eat dead snake fragments for EGP</span>
+                </div>
+                <div id="room-grid" class="room-grid"></div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-header-row">
+                  <span class="field-label">Select Serpent Skin</span>
+                  <span id="selected-skin-label" class="muted-xs">Volt Viper · striped</span>
+                </div>
+                <div id="skin-grid" class="skin-grid"></div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div id="entry-status" class="muted-xs"></div>
+              <button id="btn-play" type="button" data-start="true" class="btn-primary">
+                ▶ Play (25 EGP)
+              </button>
+            </div>
+          </section>
+
+          <!-- Right Card: Photo Skin Studio -->
+          <section class="card card-studio" aria-label="Photo Skin Studio">
+            <div class="card-body">
+              <div class="studio-header">
+                <div>
+                  <h2 class="studio-title">Photo Skin Studio</h2>
+                  <p class="muted-xs">Upload any photo to forge a matching serpent skin.</p>
+                </div>
+                <button
+                  id="btn-clear-photo"
+                  type="button"
+                  aria-label="Clear uploaded photo"
+                  class="icon-btn hidden"
+                >
+                  ↺
+                </button>
+              </div>
+
+              <input id="photo-upload-input" type="file" accept="image/*" class="sr-only" />
+
+              <label id="photo-dropzone" for="photo-upload-input" class="photo-dropzone">
+                <span class="dropzone-icon">🖼</span>
+                <span class="dropzone-title">Upload a photo</span>
+                <span class="muted-xs">PNG, JPG, or WebP · Extracts custom palette</span>
+              </label>
+
+              <div id="photo-preview-wrap" class="photo-preview-wrap hidden">
+                <div class="photo-preview-box">
+                  <img id="photo-preview-img" alt="Uploaded photo preview" class="photo-preview-img" />
+                  <label for="photo-upload-input" class="replace-photo-btn">Replace Photo</label>
+                </div>
+                <div class="field-group">
+                  <label for="photo-focus-input" class="muted-xs">Optional style note</label>
+                  <input
+                    id="photo-focus-input"
+                    type="text"
+                    maxlength="60"
+                    placeholder="e.g. neon highlights or hazard stripes"
+                    class="text-input text-input-sm"
+                  />
+                </div>
+              </div>
+
+              <div id="photo-error" role="alert" class="alert-error hidden"></div>
+
+              <div id="photo-result-card" class="result-card hidden">
+                <div class="result-card-top">
+                  <span id="photo-result-title" class="result-title"></span>
+                  <div id="photo-result-palette" class="palette-swatches"></div>
+                </div>
+                <p id="photo-result-desc" class="result-desc"></p>
+                <div id="photo-result-meta" class="muted-xs"></div>
+              </div>
+            </div>
+
+            <button id="btn-analyze-photo" type="button" disabled class="btn-secondary full-width">
+              Forge Skin from Photo
+            </button>
+          </section>
+        </main>
+
+        <footer class="title-footer">
+          <p class="muted-xs">Swipe &amp; Double-Tap Boost · Left-Click or Space Boost · Esc Pause</p>
+        </footer>
+      </div>
+
+      <!-- In-Game HUD -->
+      <div id="game-hud" class="hud-layer hidden">
+        <div class="hud-top-row">
+          <div class="hud-panel hud-stats">
+            <div class="hud-stats-top">
+              <div>
+                <div class="hud-kicker">LENGTH</div>
+                <div id="hud-length" data-testid="hud-length" class="hud-length mono hud-text-stroke">300</div>
+              </div>
+              <div class="text-right">
+                <div class="hud-kicker">RANK</div>
+                <div class="hud-rank mono">
+                  <span id="hud-rank">#1</span><span id="hud-total" class="hud-total">/17</span>
+                </div>
+              </div>
+            </div>
+            <div class="hud-stats-mid">
+              <span class="muted-xs">Pot <strong id="hud-pot" data-testid="hud-pot" class="mono accent-gold">25 EGP</strong></span>
+              <span class="muted-xs">Elims <strong id="hud-kills" class="mono text-light">0</strong></span>
+            </div>
+            <div class="boost-track">
+              <div id="hud-boost-bar" class="boost-fill"></div>
+            </div>
+          </div>
+
+          <div id="hud-kill-notice" class="kill-notice hidden"></div>
+
+          <div class="hud-right-cluster">
+            <div class="hud-panel hud-leaderboard">
+              <div class="leaderboard-header">
+                <span>LEADERBOARD</span>
+                <span id="hud-room-stake" class="accent-gold">25 EGP</span>
+              </div>
+              <ol id="hud-leaderboard" class="leaderboard-list"></ol>
+            </div>
+            <div class="hud-utility-btns">
+              <button id="btn-mute" type="button" tabindex="-1" aria-label="Toggle Mute (M)" title="Mute [M]" class="utility-btn">
+                🔊
+              </button>
+              <button id="btn-pause" type="button" tabindex="-1" aria-label="Pause (P or Esc)" title="Pause [P / Esc]" class="utility-btn">
+                ⏸
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-bottom-row">
+          <button
+            id="btn-cashout-hold"
+            type="button"
+            tabindex="-1"
+            data-testid="cashout-hold-btn"
+            class="cashout-hold-btn"
+          >
+            <span id="cashout-progress" class="cashout-progress" aria-hidden="true"></span>
+            <span class="cashout-content">
+              <span class="cashout-icon" aria-hidden="true">⎋</span>
+              <span>
+                <span id="cashout-label" class="cashout-label">Hold 3s to Cash Out</span>
+                <span id="cashout-pot" class="cashout-pot mono">25 EGP</span>
+              </span>
+            </span>
+          </button>
+
+          <canvas id="minimap-canvas" width="128" height="128" aria-label="Arena radar minimap" class="minimap-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div id="pause-modal" role="dialog" aria-modal="true" aria-labelledby="pause-modal-title" class="modal-backdrop hidden">
+        <div class="modal-card modal-sm">
+          <div>
+            <h2 id="pause-modal-title" class="modal-title">Game Paused</h2>
+            <p class="muted-xs">Press Esc or P to jump back in.</p>
+          </div>
+          <div class="modal-stack">
+            <button id="btn-resume" type="button" class="btn-primary full-width">▶ Resume Arena</button>
+            <button id="btn-restart-pause" type="button" class="btn-secondary full-width">↺ Restart Run</button>
+            <button id="btn-lobby-pause" type="button" class="btn-ghost full-width">⌂ Back to Lobby</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="gameover-modal" role="dialog" aria-modal="true" aria-labelledby="gameover-modal-title" class="modal-backdrop hidden">
+        <div class="modal-card">
+          <div>
+            <div class="modal-title-row">
+              <h2 id="gameover-modal-title" class="modal-title-lg">DAMN BRUH!</h2>
+              <span id="gameover-best-badge" class="badge-gold hidden">New Best Record</span>
+            </div>
+            <p id="gameover-subtitle" class="modal-subtitle"></p>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-stat">
+              <span class="hud-kicker">LENGTH</span>
+              <strong id="go-length" class="summary-num mono accent-lime">300</strong>
+            </div>
+            <div class="summary-stat">
+              <span class="hud-kicker">PEAK RANK</span>
+              <strong id="go-rank" class="summary-num mono">#1</strong>
+            </div>
+            <div class="summary-stat">
+              <span class="hud-kicker">ELIMS</span>
+              <strong id="go-kills" class="summary-num mono accent-gold">0</strong>
+            </div>
+          </div>
+
+          <div class="summary-meta">
+            <span>Peak Run Length: <strong id="go-peak" class="mono">300</strong></span>
+            <span>All-Time Best: <strong id="go-best" class="mono">300</strong></span>
+          </div>
+
+          <div class="modal-actions-row">
+            <button id="btn-play-again" type="button" data-start="true" class="btn-primary flex-1">↺ Play Again</button>
+            <button id="btn-change-skin" type="button" class="btn-ghost">Change Skin</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- xPay Preview Modal -->
+      <div id="xpay-modal" role="dialog" aria-modal="true" aria-labelledby="xpay-modal-title" class="modal-backdrop hidden">
+        <div class="modal-card">
+          <div class="modal-title-row">
+            <div>
+              <div class="wallet-brand-row">
+                <span class="xpay-brand">xPay</span>
+                <span class="muted-xs">Preview Gateway · Simulated EGP</span>
+              </div>
+              <h2 id="xpay-modal-title" class="modal-title">Cash In to Arena Wallet</h2>
+            </div>
+            <button id="btn-close-xpay" type="button" aria-label="Close XPay preview" class="icon-btn">✕</button>
+          </div>
+
+          <div class="wallet-strip">
+            <span class="muted-xs">Current Preview Balance</span>
+            <span id="xpay-balance" class="mono accent-lime bold">100 EGP</span>
+          </div>
+
+          <div id="xpay-receipt-wrap" class="modal-stack hidden">
+            <div class="alert-success">
+              <strong>XPay Preview Confirmed</strong>
+              <p id="xpay-receipt-text" class="muted-xs"></p>
+            </div>
+            <button id="btn-xpay-done" type="button" class="btn-primary full-width">Done</button>
+          </div>
+
+          <form id="xpay-form" class="modal-stack">
+            <div class="field-group">
+              <label for="xpay-amount-input" class="field-label">Amount (EGP)</label>
+              <input id="xpay-amount-input" type="number" step="any" min="0.01" value="100" class="text-input mono bold" />
+              <div id="xpay-presets" class="preset-grid">
+                <button type="button" data-preset="25" class="preset-btn">+25</button>
+                <button type="button" data-preset="50" class="preset-btn">+50</button>
+                <button type="button" data-preset="100" class="preset-btn">+100</button>
+                <button type="button" data-preset="250" class="preset-btn">+250</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="xpay-method-select" class="field-label">XPay Channel (Preview)</label>
+              <select id="xpay-method-select" class="text-input">
+                <option value="Vodafone Cash / Wallet">Vodafone Cash / Mobile Wallet</option>
+                <option value="InstaPay Egypt">InstaPay Egypt</option>
+                <option value="Meeza / Bank Card">Meeza / Bank Card</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label id="xpay-ref-label" for="xpay-ref-input" class="field-label">Demo Wallet / Card Ref</label>
+              <input id="xpay-ref-input" type="text" maxlength="32" value="0100 000 0000" class="text-input" />
+            </div>
+
+            <div id="xpay-error" role="alert" class="alert-error hidden"></div>
+            <p class="muted-xs">Preview mode only: no real EGP or payment gateway charges occur.</p>
+            <button id="btn-xpay-submit" type="submit" class="btn-cyan full-width">Confirm Cash In (Preview)</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
